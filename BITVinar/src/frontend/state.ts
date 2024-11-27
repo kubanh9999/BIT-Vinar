@@ -151,7 +151,7 @@ export const newsState = selector<any>({
 });
 export const userCurrentAtom = atom<Customer>({
   key: "userCurrentAtom",
-  default: getUserCurrent() as Promise<Customer>,
+  default: {} as Promise<Customer>,
 });
 
 export const userCurrentState = selector({
@@ -210,8 +210,8 @@ export const productsState = selector<Product[]>({
     const products = await ProductService.getAll();
 
     const variants = get(variantState);
-
-    return products.map(
+    const sortedProducts = products.sort((a, b) => b.id - a.id);
+    return sortedProducts.map(
       (product) =>
       ({
         ...product,
