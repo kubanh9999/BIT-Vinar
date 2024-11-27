@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { Box, Header, Icon, Page, Text, Spinner } from "zmp-ui";
 import CustomReview from "../components/custom-review"; 
 import subscriptionDecor from "static/subscription-decor.svg";
@@ -14,8 +14,9 @@ import { Subscription } from "../components/subscription";
 import { FaUser, FaChevronCircleRight, FaClock, FaStar } from "react-icons/fa";
 import { IoMdSettings } from "react-icons/io";
 import { IoCall } from "react-icons/io5";
+import { getUserInfo } from "zmp-sdk";
 const listRender = (handle, navigate, isAdmin) => {
-  const primaryColor = '#009e91'; // Màu chính
+  const primaryColor = '#3e4094'; // Màu chính
   const items = [
     {
       left: <FaUser style={{ color: 'black' }} size={20} className="inline" />,
@@ -86,7 +87,6 @@ interface PersonalProps {
   setLoading: (loading: boolean) => void; // Thêm prop setLoading
 }
 
-
 const Personal: FC<PersonalProps> = ({ setLoading }) => {
   const navigate = useNavigate();
   const getAuth = useRecoilValue(authenticationState);
@@ -95,17 +95,19 @@ const Personal: FC<PersonalProps> = ({ setLoading }) => {
   const userCurrent = useRecoilValue(userCurrentState);
   const setUserCurrent = useSetRecoilState(userCurrentAtom);
 
-  const handleUserInfo = () => {
+  const handleUserInfo = async () => {
     setLoading(true); // Trigger loading for the whole page
 
-    let { id, phone_number } = userCurrent;
-    if (phone_number) {
+    let { id, name, phone_number } = userCurrent;
+    if (phone_number && name) {
       setLoading(false); 
       navigate("/info_user");
     } else {
+      const userInfo = await getUserInfo({ autoRequestPermission: true });
+      const name = userInfo.userInfo.name || "";
       getPhonenumber(contents)
         .then((res) => {
-          const updatedUser = { ...userCurrent, phone_number: res };
+          const updatedUser = { ...userCurrent, name, id: userInfo.userInfo.id, phone_number: res };
           setUserCurrent(updatedUser);
 
           (async () => {
@@ -151,7 +153,6 @@ const Other: FC = () => {
   const handleContact = () => {   
     navigate('/contact');
   };
-  const primaryColor = '#009e91'; // Màu chính
 
   return (
     <Box className="m-4 text-black">
@@ -218,7 +219,7 @@ const ProfilePage: FC = () => {
           <Spinner />
         </div>
       )}
-      <Header showBackIcon={false} title="&nbsp;" className="bg-[#009e91]"/>
+      <Header showBackIcon={false} title="&nbsp;" className="bg-textPrimary"/>
       {!loading && (
         <>
           <Subscription></Subscription>
